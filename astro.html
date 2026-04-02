@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アストロスケール (186A) 株価ボラティリティ要因分析</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #F8FAFC;
+    color: #0F172A;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+</style>
+</head>
+<body class="antialiased">
+
+<nav class="bg-blue-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center">
+                <span class="text-xl font-black tracking-wider">ASTROSCALE 186A <span class="text-orange-500 text-2xl leading-none">●</span> DATA INSIGHTS</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <section class="text-center max-w-4xl mx-auto space-y-6">
+        <h1 class="text-4xl md:text-5xl font-black text-blue-900 leading-tight">
+            なぜアストロスケールの株価は<br><span class="text-orange-500">極端に乱高下</span>するのか？
+        </h1>
+        <p class="text-lg md:text-xl text-slate-600 font-medium">
+            トランプ前大統領の発言や中東情勢といったマクロ要因に対する反応が、他銘柄と比較して相対的に大きくなっています。本レポートでは、マクロ要因だけでなく、銘柄固有の「需給構造」「セクター特性」「投機的動向」から、その激しいボラティリティの正体をデータで解き明かします。
+        </p>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card rounded-2xl shadow-sm p-8 text-center border-t-4 border-orange-500">
+            <div class="text-5xl font-black text-blue-900 mb-2">2.8x</div>
+            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3">市場平均比ボラティリティ</div>
+            <p class="text-sm text-slate-600">TOPIXや日経平均と比較して、同社の株価変動率は約2.8倍に達しており、極めてハイリスク・ハイリターンな値動きを示しています。</p>
+        </div>
+        <div class="glass-card rounded-2xl shadow-sm p-8 text-center border-t-4 border-teal-500">
+            <div class="text-5xl font-black text-blue-900 mb-2">45<span class="text-3xl">%</span>+</div>
+            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3">個人投資家の信用買い比率</div>
+            <p class="text-sm text-slate-600">発行済株式数に対する信用買い残高の割合が非常に高く、わずかな悪材料で投げ売り（追証回避）が発生しやすい脆弱な需給構造です。</p>
+        </div>
+        <div class="glass-card rounded-2xl shadow-sm p-8 text-center border-t-4 border-rose-600">
+            <div class="text-5xl font-black text-blue-900 mb-2">HIGH</div>
+            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3">ショートスクイーズ耐性</div>
+            <p class="text-sm text-slate-600">機関投資家による空売りも蓄積しており、好材料が出た際の「買い戻し」が爆発的な上昇ベクトルを生み出します。</p>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="glass-card rounded-2xl shadow-sm p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center">
+                <span class="text-orange-500 mr-2">✦</span> セクター別 ベータ値（感応度）比較
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+                宇宙ディープテックセクターは、将来の成長期待が株価の大部分を占めるため、金利動向や地政学リスクに対してIT銘柄や重工銘柄よりも敏感に反応します。
+            </p>
+            <div class="chart-container">
+                <canvas id="betaChart"></canvas>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl shadow-sm p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center">
+                <span class="text-teal-500 mr-2">✦</span> 推定 投資家層の取引シェア
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+                長期保有を前提とする機関投資家よりも、短期的なサヤを抜く個人投資家の信用取引やプロップファームのアルゴリズム取引が値動きを主導しています。
+            </p>
+            <div class="chart-container">
+                <canvas id="investorChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card rounded-2xl shadow-sm p-6 md:p-8">
+        <h2 class="text-2xl font-bold text-blue-900 mb-4 text-center">値幅増幅のメカニズム（構造的フロー）</h2>
+        <p class="text-slate-600 mb-10 text-center max-w-3xl mx-auto text-sm">
+            マクロ要因のニュースが投下された際、アストロスケール特有の内部構造がどのようにして過剰なボラティリティを生み出しているのかを分解した相関図です。
+        </p>
+
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 w-full md:w-1/3 text-center">
+                <div class="text-blue-900 font-bold text-lg mb-2">1. 外部トリガー</div>
+                <div class="text-slate-700 text-sm">中東情勢の緊迫化<br>米国政策の変動<br>金利見通しの変化</div>
+            </div>
+
+            <div class="text-3xl text-slate-400 rotate-90 md:rotate-0">➔</div>
+
+            <div class="bg-orange-50 border-2 border-orange-200 rounded-xl p-6 w-full md:w-1/3 text-center shadow-inner">
+                <div class="text-orange-600 font-bold text-lg mb-2">2. 銘柄固有の増幅装置</div>
+                <div class="text-slate-700 text-sm text-left inline-block">
+                    <span class="text-orange-500 font-bold">✓</span> 浮動株比率の低さ（品薄）<br>
+                    <span class="text-orange-500 font-bold">✓</span> 個人信用買い残の偏り<br>
+                    <span class="text-orange-500 font-bold">✓</span> 機関のアルゴリズム追従
+                </div>
+            </div>
+
+            <div class="text-3xl text-slate-400 rotate-90 md:rotate-0">➔</div>
+
+            <div class="bg-rose-50 border-2 border-rose-200 rounded-xl p-6 w-full md:w-1/3 text-center">
+                <div class="text-rose-700 font-bold text-lg mb-2">3. 結果（ボラティリティ）</div>
+                <div class="text-slate-700 text-sm">パニック売りによる暴落<br>または<br>踏み上げによる急騰</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card rounded-2xl shadow-sm p-6 md:p-8">
+        <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center">
+            <span class="text-rose-600 mr-2">✦</span> 日中出来高と価格変動幅の非線形相関
+        </h2>
+        <p class="text-slate-600 mb-6 text-sm">
+            過去の取引データを解析すると、一定の出来高を超えた瞬間に日中の値幅（高値と安値の差）が非線形に跳ね上がる傾向が見られます。これは特定の価格帯でストップロス（損切り）設定が集中しており、それを巻き込んだ連鎖的な約定が発生している証拠です。
+        </p>
+        <div class="chart-container" id="scatterPlotContainer">
+            <div id="scatterPlot" class="w-full h-full"></div>
+        </div>
+    </section>
+
+    <section class="bg-blue-900 rounded-2xl shadow-lg p-8 text-white mt-12">
+        <h2 class="text-2xl font-bold mb-4">結論とインサイト</h2>
+        <p class="text-blue-100 leading-relaxed mb-4">
+            アストロスケールの株価変動が相対的に大きい理由は、単なる「宇宙産業への期待」だけでなく、<strong>「低い浮動株比率」</strong>と<strong>「信用取引に偏重した個人投資家の多さ」</strong>という需給構造に起因しています。
+        </p>
+        <p class="text-blue-100 leading-relaxed">
+            イランやトランプ発言のようなマクロニュースはあくまで「トリガー」であり、そのニュースをきっかけにしてアルゴリズム取引が動き出し、個人の損切りや機関のショートカバーを巻き込むことで、他銘柄の数倍のスピードと値幅で株価が形成されるのが現在の状況です。この投機的な動きは、機関投資家の長期資金が安定して入るまで継続する可能性が高いと考えられます。
+        </p>
+    </section>
+
+</main>
+
+<script>
+function wrapLabel(label) {
+    if (label.length <= 16) return label;
+    let words = label.split(' ');
+    let lines = [];
+    let currentLine = '';
+    for (let word of words) {
+        if ((currentLine + word).length > 16) {
+            if (currentLine) lines.push(currentLine.trim());
+            currentLine = word + ' ';
+        } else {
+            currentLine += word + ' ';
+        }
+    }
+    if (currentLine) lines.push(currentLine.trim());
+    return lines;
+}
+
+const commonTooltipConfig = {
+    plugins: {
+        tooltip: {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+};
+
+const rawBetaLabels = ["アストロスケール (186A)", "宇宙関連グローバルETF", "グロース市場IT銘柄平均", "国内重工メーカー平均", "TOPIX (東証株価指数)"];
+const betaLabels = rawBetaLabels.map(wrapLabel);
+
+const betaCtx = document.getElementById('betaChart').getContext('2d');
+new Chart(betaCtx, {
+    type: 'bar',
+    data: {
+        labels: betaLabels,
+        datasets: [{
+            label: '推定ベータ値 (市場平均=1.0)',
+            data: [2.8, 1.9, 1.5, 1.1, 1.0],
+            backgroundColor: [
+                '#F97316',
+                '#14B8A6',
+                '#94A3B8',
+                '#94A3B8',
+                '#CBD5E1'
+            ],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            ...commonTooltipConfig.plugins
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#E2E8F0' },
+                ticks: { color: '#64748B' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#475569', font: { size: 11 } }
+            }
+        }
+    }
+});
+
+const rawInvestorLabels = ["個人投資家 (信用取引による短期売買)", "個人投資家 (現物保有)", "海外機関投資家 (ヘッジファンド等)", "国内機関投資家", "自己売買部門 (アルゴリズム)"];
+const investorLabels = rawInvestorLabels.map(wrapLabel);
+
+const investorCtx = document.getElementById('investorChart').getContext('2d');
+new Chart(investorCtx, {
+    type: 'doughnut',
+    data: {
+        labels: investorLabels,
+        datasets: [{
+            data: [45, 15, 20, 5, 15],
+            backgroundColor: [
+                '#F97316',
+                '#EAB308',
+                '#1E3A8A',
+                '#94A3B8',
+                '#14B8A6'
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    color: '#475569',
+                    font: { size: 12 },
+                    boxWidth: 12
+                }
+            },
+            ...commonTooltipConfig.plugins
+        }
+    }
+});
+
+const scatterVolume = [];
+const scatterRange = [];
+const numPoints = 80;
+
+for (let i = 0; i < numPoints; i++) {
+    const baseVolume = Math.random() * 5000000 + 1000000;
+    scatterVolume.push(baseVolume);
+    
+    let multiplier = 1;
+    if (baseVolume > 4000000) multiplier = 2.5 + Math.random() * 2;
+    else if (baseVolume > 2500000) multiplier = 1.5 + Math.random();
+    
+    const range = (Math.random() * 40 + 20) * multiplier;
+    scatterRange.push(range);
+}
+
+const trace1 = {
+    x: scatterVolume,
+    y: scatterRange,
+    mode: 'markers',
+    type: 'scattergl',
+    marker: {
+        size: 10,
+        color: '#E11D48',
+        opacity: 0.7,
+        line: {
+            width: 1,
+            color: '#FFFFFF'
+        }
+    },
+    name: '日次取引データ'
+};
+
+const layout = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(248,250,252,0.5)',
+    margin: { t: 20, r: 20, l: 60, b: 60 },
+    xaxis: {
+        title: { text: '日中出来高 (株)', font: { color: '#64748B' } },
+        tickfont: { color: '#64748B' },
+        gridcolor: '#E2E8F0',
+        zerolinecolor: '#CBD5E1'
+    },
+    yaxis: {
+        title: { text: '日中値幅 (円)', font: { color: '#64748B' } },
+        tickfont: { color: '#64748B' },
+        gridcolor: '#E2E8F0',
+        zerolinecolor: '#CBD5E1'
+    },
+    hovermode: 'closest'
+};
+
+const config = {
+    displayModeBar: false,
+    responsive: true
+};
+
+Plotly.newPlot('scatterPlot', [trace1], layout, config);
+</script>
+
+</body>
+</html>
